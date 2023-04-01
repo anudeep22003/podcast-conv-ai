@@ -1,8 +1,9 @@
 from llama_index import Document
-import json
+import json, os
 from llama_index.node_parser import SimpleNodeParser
-from llama_index import GPTTreeIndex, LLMPredictor, PromptHelper
+from llama_index import GPTTreeIndex, LLMPredictor, PromptHelper, GPTListIndex
 from langchain import OpenAI
+from llama_index.composability import ComposableGraph
 
 from llama_index.data_structs.node_v2 import Node, DocumentRelationship
 
@@ -14,7 +15,7 @@ class ConfigLLM:
 
     # define prompt helper
     # set maximum input size
-    max_input_size = 4096
+    max_input_size = 2096
     # set number of output tokens
     num_output = 256
     # set maximum chunk overlap
@@ -22,37 +23,72 @@ class ConfigLLM:
     prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
 
-f = open("data/timechunk.json", mode="r")
-data = json.load(f)
+def index_construct_and_save(timechunk_path: str, save_loc: str):
+    for filename in os.listdir(timechunk_path):
+        file = os.path.join(timechunk_path, filename)
+        data = json.load(open(file=file, mode="r"))
+        # keys, text = list(zip(*data.items()))
+        nodes = [Node(text=text, doc_id=keys) for keys, text in data.items()]
+        index = GPTTreeIndex(nodes=nodes)
+        index.save_to_disk(f"{save_loc}/{filename}.json")
 
-# for k,v in data.items():
 
-text_list = [v for _, v in data.items()]
-doc_index_list = [k for k, _ in data.items()]
+def load_index_with_summary(index_loc: str):
+    index_list = []
+    index_summary_list = []
+    for filename in os.listdir(index_loc):
+        index_file = os.path.join(index_loc, filename)
+        index = GPTTreeIndex.load_from_disk(index_file)
+        summary = index.query(
+            "What is the summary of this document chunk?", mode="summarize"
+        )
+        index_summary_list.append(str(summary))
+        index_list.append(index)
 
-# documents = [Document(t) for t in text_list]
-# parser = SimpleNodeParser()
-# nodes = parser.get_nodes_from_documents(documents)
+    return index_list, index_summary_list
 
-# index = GPTTreeIndex(nodes=nodes)
-# index.save_to_disk("data/index.json")
-# answer = index.query("What is the document about?")
-# print(
-#     answer, answer.source_nodes, answer.get_formatted_sources(), sep="\n-------------\n"
-# )
 
-# nodes = [Node(text=v, doc_id=k) for k, v in data.items()]
-# index = GPTTreeIndex(nodes=nodes)
-# index.save_to_disk("data/index_time_id.json")
+def compose_graph_and_save(index_loc: str, save_loc: str):
+    index_list, index_summary_list = load_index_with_summary(index_loc)
+    graph = ComposableGraph.from_indices(GPTListIndex, index_list, index_summary_list)
+    graph.save_to_disk(save_loc)
 
-index = GPTTreeIndex.load_from_disk("data/index_time_id.json")
-answer = index.query("Who is candace owens and is there any relationship to trump?")
-print(
-    answer,
-    [
-        [el.strip() for el in source.node.doc_id.split("-")]
-        for source in answer.source_nodes
-    ],
-    answer.get_formatted_sources(),
-    sep="\n-------------\n",
-)
+
+def load_graph(graph_location: str):
+    return ComposableGraph.load_from_disk(graph_location)
+
+
+def query_graph(query: str, graph: ComposableGraph, load_graph: bool = True):
+    response = graph.query(query, query_configs=get_query_configs())
+    return response
+
+
+def parse_response(response: ComposableGraph.query):
+    print(
+        response,
+        [source.node.doc_id for source in response.source_nodes],
+        response.get_formatted_sources(),
+    )
+
+
+def query_composed_index(query: str, graph_loc: str):
+    graph = load_graph(graph_loc)
+    response = query_graph(graph)
+    parse_response(response)
+
+
+def get_query_configs():
+    # set query config
+    query_configs = [
+        {
+            "index_struct_type": "simple_dict",
+            "query_mode": "default",
+            "query_kwargs": {"similarity_top_k": 1},
+        },
+        {
+            "index_struct_type": "keyword_table",
+            "query_mode": "simple",
+            "query_kwargs": {},
+        },
+    ]
+    return query_configs
