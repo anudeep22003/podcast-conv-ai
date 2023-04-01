@@ -44,12 +44,17 @@ def load_index_with_summary(index_loc: str):
         )
         index_summary_list.append(str(summary))
         index_list.append(index)
+        #! logging
+
+    print("index list", len(index_list), index_list)
 
     return index_list, index_summary_list
 
 
 def compose_graph_and_save(index_loc: str, save_loc: str):
     index_list, index_summary_list = load_index_with_summary(index_loc)
+    #! logging
+    print(index_summary_list)
     graph = ComposableGraph.from_indices(GPTListIndex, index_list, index_summary_list)
     graph.save_to_disk(save_loc)
 
@@ -58,22 +63,35 @@ def load_graph(graph_location: str):
     return ComposableGraph.load_from_disk(graph_location)
 
 
-def query_graph(query: str, graph: ComposableGraph, load_graph: bool = True):
+def query_graph(query: str, graph: ComposableGraph):
     response = graph.query(query, query_configs=get_query_configs())
     return response
 
 
 def parse_response(response: ComposableGraph.query):
+    print("-" * 50)
+    print(response)
+    print("-" * 50)
     print(
-        response,
-        [source.node.doc_id for source in response.source_nodes],
+        str(response),
+        # response.source_nodes,
+        [node_with_score.node.doc_id for node_with_score in response.source_nodes],
+        # [node.ref_doc_id for node in response.source_nodes],
         response.get_formatted_sources(),
+        sep="\n" + "+" * 80 + "\n",
     )
+    print("-" * 50)
 
 
 def query_composed_index(query: str, graph_loc: str):
     graph = load_graph(graph_loc)
-    response = query_graph(graph)
+    response = query_graph(query, graph)
+    parse_response(response)
+
+
+def query_single_index(query: str, index_loc: str):
+    index = GPTTreeIndex.load_from_disk(index_loc)
+    response = index.query(query)
     parse_response(response)
 
 
