@@ -64,10 +64,6 @@ def create_time_chunks(
         # loop to create the chunks
         #! the last chunk might be getting skipped
         for chunk in data:
-            # print("working with chunk")
-            # print(type(chunk), "-" * 30)
-            # print(chunk)
-            # print(chunk["start"], end="-" * 40)
             end_time = chunk["start"] + chunk["duration"]
             if math.isclose(end_time, chunk_num * 60 * time_chunk_size_mins, abs_tol=5):
                 text = " ".join(running_composite)
@@ -81,27 +77,3 @@ def create_time_chunks(
         # write the timechunks to a json file
         with open(f"{output_directory}/{filename}", "w") as f:
             json.dump(timechunks, f)
-
-
-# videoId = "zBUhQPPS9AY"
-# subs = YouTubeTranscriptApi.get_transcript(videoId)
-# json_formatted = formatter.format_transcript(transcript=subs)
-
-# with open("data/yc_test_subs.json", mode="w", encoding="utf-8") as f:
-#     f.write(json_formatted)
-
-# f = open("data/yc_test_subs.json")
-# data = json.load(f)
-
-
-# # combined_text = []
-
-# # for i in data:
-# #     combined_text.extend([i["text"]])
-
-
-# with open("data/yc.json", mode="w") as f:
-#     json.dump(timechunks, f)
-
-if __name__ == "__main__":
-    ...

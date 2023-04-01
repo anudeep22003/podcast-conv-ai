@@ -1,4 +1,10 @@
-from .loader import orchestrate_timechunking
+from .loader import (
+    orchestrate_timechunking,
+    extract_json_formatted_subs,
+    write_subs_to_json,
+    create_time_chunks,
+    time_chunk_size_mins,
+)
 from .index_construct import (
     index_construct_and_save,
     query_composed_index,
@@ -11,7 +17,9 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 from datetime import datetime
+from llama_index.data_structs.node_v2 import Node, DocumentRelationship
 from typing import Optional
+import os, json
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -45,13 +53,30 @@ def get_db():
 
 # index = GPTTreeIndex.load_from_disk("data/index/Qyrjgf-_Vdk.json")
 
-index_loc = "data/index/zBUhQPPS9AY.json"
-index = GPTTreeIndex.load_from_disk(index_loc)
+# index_loc = "data/index/zBUhQPPS9AY.json"
+# index = GPTTreeIndex.load_from_disk(index_loc)
+
+system_prompt = """You are an agent that is trained to take information from the context and answer questions within that context by accepting a loosely related query. You are free to use an analogy of the question if the information is not verbatim in the context.
+
+If the context of the question is even loosely related to the content then provide a reasonably good answer.
+
+If the question is too outside the context of the video just respond back with 'PromptError'. Do not overuse 'PromptError'. Use sparingly.
+
+Give the above conditions, answer the below user query.
+
+"""
+
+# system_prompt = """
+# Answer the below query using the context above. Try not to use the
+# """
 
 
 @app.get("/response/", response_model=schemas.Response)
-async def get_response(request: schemas.RequestBase, db: Session = Depends(get_db)):
-    response = index.query(request.query)
+async def get_response(
+    video_id: str, request: schemas.RequestBase, db: Session = Depends(get_db)
+):
+    index = load_appropriate_index(video_id)
+    response = index.query(f"{system_prompt}\n{request.query}")
     response_obj = schemas.ResponseBase(
         response=str(response),
         sources=" ".join(
@@ -59,3 +84,23 @@ async def get_response(request: schemas.RequestBase, db: Session = Depends(get_d
         ),
     )
     return crud.add_response(db, response=response_obj)
+
+
+def load_appropriate_index(video_id: str):
+    filenames = os.listdir("data/index")
+    file_loc = f"{video_id}.json"
+    if file_loc not in filenames:
+        # create new index
+        formatted_subs = extract_json_formatted_subs(video_id)
+        write_subs_to_json(formatted_subs, "data/subs", video_id)
+        create_time_chunks("data/subs", "data/timechunks", time_chunk_size_mins)
+        # load index
+        data = json.load(open(file=f"data/timechunks/{file_loc}", mode="r"))
+        # keys, text = list(zip(*data.items()))
+        nodes = [Node(text=text, doc_id=keys) for keys, text in data.items()]
+        index = GPTTreeIndex(nodes=nodes)
+        # save it
+        index.save_to_disk(f"data/index/{file_loc}")
+
+    index = GPTTreeIndex.load_from_disk(f"data/index/{video_id}.json")
+    return index

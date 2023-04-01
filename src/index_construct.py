@@ -10,8 +10,8 @@ from llama_index.data_structs.node_v2 import Node, DocumentRelationship
 
 class ConfigLLM:
     # define LLM
-    name = "ada-003"
-    llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, model_name="text-ada-003"))
+    name = "gpt-3.5-turbo"
+    llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, model_name="gpt-3.5-turbo"))
 
     # define prompt helper
     # set maximum input size
