@@ -71,7 +71,7 @@ Give the above conditions, answer the below user query.
 # """
 
 
-@app.get("/response/", response_model=schemas.Response)
+@app.post("/response/", response_model=schemas.Response)
 async def get_response(
     video_id: str, request: schemas.RequestBase, db: Session = Depends(get_db)
 ):
