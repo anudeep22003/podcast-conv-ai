@@ -1,3 +1,9 @@
+import os, json
+from dotenv import load_dotenv
+
+load_dotenv()
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 from .loader import (
     orchestrate_timechunking,
     extract_json_formatted_subs,
@@ -19,7 +25,6 @@ from .database import SessionLocal, engine
 from datetime import datetime
 from llama_index.data_structs.node_v2 import Node, DocumentRelationship
 from typing import Optional
-import os, json
 
 models.Base.metadata.create_all(bind=engine)
 
