@@ -6,25 +6,25 @@ This is the winning submission of the hasgeek hackathon held in Bangalore on `Ma
 ## Steps to run
 1. Clone the git repository locally using `git clone https://github.com/anudeep22003/podcast-conv-ai` run from within the folder you want to store the project in
 2. Create virtual environment:
-		- `conda` or `mamba` - I use mamba but you can use conda also. They both function the same here. Run the following command in the terminal (from the project folder) `mamba env create --file env.yml` and then activate the env with `mamba activate podcast-conv-ai`  
-		- you can also use `virtualenv` I will leave a `requirements.txt` file also 
+	- `conda` or `mamba` - I use mamba but you can use conda also. They both function the same here. Run the following command in the terminal (from the project folder) `mamba env create --file env.yml` and then activate the env with `mamba activate podcast-conv-ai`  
+	- you can also use `virtualenv` I will leave a `requirements.txt` file also 
 3. We use OpenAI's GPT3.5, you need to add your own API key. Create a `.env` file and add an entry as `OPENAI_API_KEY="<enter-your-key-here>"`, save and close out of the file. 
 3. From the terminal or your IDE, run `uvicorn src.main:app` to start the server from which we will be making `api` calls
-		- If you get port error, then run `uvicorn src.main:app --port 8080` or whatever port you want to
-		- You can also run `uvicorn src.main:app --reload` to run in developer mode, where any change detected will immediately be reflected
+	- If you get port error, then run `uvicorn src.main:app --port 8080` or whatever port you want to
+	- You can also run `uvicorn src.main:app --reload` to run in developer mode, where any change detected will immediately be reflected
 4. You can see the documentation on the `api` by visiting `http://127.0.0.1:8000/redoc` or `http://127.0.0.1:8000/docs`
 5. To see the result, connect it up to a front end, or hit the `api` from `curl` or `postman`. The request will include the following:
-		- `request body` `{'query': "Who are some of the people mentioned in the video?"}`
-		- `query` parameter to be passed is `video_id=<youtube_video_id>`
+	- `request body` `{'query': "Who are some of the people mentioned in the video?"}`
+	- `query` parameter to be passed is `video_id=<youtube_video_id>`
 6. Answer to the question and the relevant snippet are shared in the body as follows:
-		```
-		{
-		  "response": "The video mentions Anne FRank, Hitler, and everyday people who struggle to make ends meet.",
-		  "sources": "750.0044 - 600.9944",
-		  "id": 0
-		}
-		```
-		Here the `response` is the answer returned and `sources` is the `start` to `end` timestamp of the video where the information is in.  
+	```
+	{
+	  "response": "The video mentions Anne FRank, Hitler, and everyday people who struggle to make ends meet.",
+	  "sources": "750.0044 - 600.9944",
+	  "id": 0
+	}
+	```
+	Here the `response` is the answer returned and `sources` is the `start` to `end` timestamp of the video where the information is in.  
 
 ## General Notes 
 - Go to `src/index_construct.py` to change the llm model. We are using `gpt-3.5-turbo` but you can change to any other model. 
