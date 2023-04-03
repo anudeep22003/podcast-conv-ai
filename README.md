@@ -4,7 +4,7 @@
 This is the winning submission of the hasgeek hackathon held in Bangalore on `March 03, 2023`. Our submission was a chrome plugin that you can open on any `youtube` video and ask questions off of. The plugin not only synthesizes an answer using `large language models` but also points you to the specific chunks in the video from where it constructed the answer from. This allows you to find the information you are looking for without having to scrub through the video, painfully slowly. 
 
 ## Steps to run
-1. Clone the git repository locally using `<!git-command>` run from within the folder you want to store the project in
+1. Clone the git repository locally using `git clone https://github.com/anudeep22003/podcast-conv-ai` run from within the folder you want to store the project in
 2. Create virtual environment:
 		- `conda` or `mamba` - I use mamba but you can use conda also. They both function the same here. Run the following command in the terminal (from the project folder) `mamba env create --file env.yml` and then activate the env with `mamba activate podcast-conv-ai`  
 		- you can also use `virtualenv` I will leave a `requirements.txt` file also 
