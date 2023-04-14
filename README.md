@@ -3,7 +3,7 @@
 ## What is this
 This is the winning submission of the hasgeek hackathon held in Bangalore on `March 03, 2023`. Our submission was a chrome plugin that you can open on any `youtube` video and ask questions off of. The plugin not only synthesizes an answer using `large language models` but also points you to the specific chunks in the video from where it constructed the answer from. This allows you to find the information you are looking for without having to scrub through the video, painfully slowly. 
 
-Deep Hack - India's first ever ChatGPT Hackathon: [Demo Youtube Video]("https://youtu.be/r0AXineCHOA")
+Deep Hack - India's first ever ChatGPT Hackathon: [Demo Youtube Video](https://youtu.be/r0AXineCHOA)
 
 ## Steps to run
 1. Clone the git repository locally using `git clone https://github.com/anudeep22003/podcast-conv-ai` run from within the folder you want to store the project in
